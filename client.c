@@ -1,59 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#ifndef SERVER_H
+#define SERVER_H
+#include "common.h"
+#endif
 
-#define SERVER_PORT	4577 //侦听端口
-#define MAX_LENGTH 1024 // max length of a packet
 
 extern int errno;
 char* server_ip = "127.0.0.1";      // define the server ip address
-// used to indicate which function the client is requesting for
-// 0: error, 1: get time, 2: get name, 3: get list, 4: send msg
-char* function_code[4] = { "1\n", "2\n", "3\n", "4\n" };
-char recv_buffer[MAX_LENGTH];       // a buffer used to store the income data
-void* ptr;
 int sockfd;
 
-void Refresh(){
-    for(int i = 0; i < MAX_LENGTH; i++){
-        recv_buffer[i] = 0;
-    }
-    ptr = recv_buffer;
-}
 
-void ReceiveData(){
-    int count = -1;
-    int ret;
-    // write the received data into recv_buffer
-	ptr = recv_buffer;
-    ret = recv(sockfd, ptr, MAX_LENGTH, 0);
-    ptr = (char *)ptr + ret;
-    count += ret;
-    if(count == -1){
-        return;
-    }
-    // a complete message always ends with a character '\n'
-	while(recv_buffer[count] != '\n') {
-		// receive data
-		ret = recv(sockfd, ptr, MAX_LENGTH, 0);
-        count += ret;
-        // if some error happens, exit
-		if(ret <= 0) {
-			printf("recv() failed!\n");
-			close(sockfd);// close the socket
-			close(sockfd);
-			exit(-1);
-		}
-		ptr = (char *)ptr + ret;
-	}
-}
 
 int main(int argc, char *argv[]) {	
 	struct sockaddr_in serverAddr;
@@ -120,9 +75,10 @@ int main(int argc, char *argv[]) {
             return -1;
         }
     }
-    ReceiveData();
+    int tmp_arr[] = {sockfd};
+    ReceiveData(sockfd, tmp_arr, 1);
     printf("%s\n", recv_buffer);
-    Refresh();
+    Reset();
     }
 
 	close(sockfd);//关闭套接字

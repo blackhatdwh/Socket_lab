@@ -1,59 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef SERVER_H
+#define SERVER_H
+#include "common.h"
 #include <time.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#define SERVER_PORT 4577
-#define MAX_LENGTH 1024
+#endif
 
 extern int errno;
 int sockfd, comfd;
-char recv_buffer[MAX_LENGTH];       // a buffer used to store the income data
-// used to indicate which function the client is requesting for
-// 0: error, 1: get time, 2: get name, 3: get list, 4: send msg
-char* function_code[4] = { "1\n", "2\n", "3\n", "4\n" };
-void *ptr;
 
-// used to clear the receive buffer
-void Refresh(){
-    for(int i = 0; i < MAX_LENGTH; i++){
-        recv_buffer[i] = 0;
-    }
-    ptr = recv_buffer;
-}
 
-void ReceiveData(){
-    int count = -1;
-    int ret;
-    // write the received data into recv_buffer
-	ptr = recv_buffer;
-    ret = recv(comfd, ptr, MAX_LENGTH, 0);
-    ptr = (char *)ptr + ret;
-    count += ret;
-    if(count == -1){
-        return;
-    }
-    // a complete message always ends with a character '\n'
-	while(recv_buffer[count] != '\n') {
-		// receive data
-		ret = recv(comfd, ptr, MAX_LENGTH, 0);
-        count += ret;
-        // if some error happens, exit
-		if(ret <= 0) {
-			printf("recv() failed!\n");
-			close(sockfd);// close the socket
-			close(comfd);
-			exit(-1);
-		}
-		ptr = (char *)ptr + ret;
-	}
-}
 
 void BadRequest(){
 	char* send_buffer = "status_code: 400\n";
@@ -153,7 +107,8 @@ int main() {
 
     while(1){
     
-    ReceiveData();
+    int tmp_arr[] = {comfd, sockfd};
+    ReceiveData(comfd, tmp_arr, 2);
     int function_code = ParseFunction();
     switch(function_code){
         // wrong function code
@@ -175,7 +130,7 @@ int main() {
         case 4:
             break;
     }
-    Refresh();
+    Reset();
 
     }
     close(sockfd);//关闭套接字
