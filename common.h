@@ -21,7 +21,7 @@
 #define MAX_LENGTH 1024 // max length of a packet
 extern char* function_code[4];
 extern void* ptr;
-void Reset();
-void ReceiveData(int recv_fd, int* close_fd, int amount);
+void Reset(char* recv_buffer);
+void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount);
 
 #endif /* !COMMON_H */

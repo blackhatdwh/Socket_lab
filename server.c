@@ -50,7 +50,7 @@ void ShowName(int send_fd){
 }
 
 // which function does the income data indicate?
-int ParseFunction(){
+int ParseFunction(char* recv_buffer){
     for(int i = 0; i < 4; i++){
         if(strcmp(function_code[i], recv_buffer) == 0){
             return i + 1;
@@ -107,8 +107,8 @@ int main() {
     while(1){
 
         int tmp_arr[] = {comfd, sockfd};
-        ReceiveData(comfd, tmp_arr, 2);
-        int function_code = ParseFunction();
+        ReceiveData(recv_buffer, comfd, tmp_arr, 2);
+        int function_code = ParseFunction(recv_buffer);
         switch(function_code){
             // wrong function code
             case 0:
@@ -129,7 +129,7 @@ int main() {
             case 4:
                 break;
         }
-        Reset();
+        Reset(recv_buffer);
 
     }
     close(sockfd);

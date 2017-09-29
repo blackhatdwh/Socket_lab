@@ -9,6 +9,7 @@ char* server_ip = "127.0.0.1";      // define the server ip address
 int sockfd;
 
 
+char recv_buffer[MAX_LENGTH];
 
 int main(int argc, char *argv[]) {	
 	struct sockaddr_in serverAddr;
@@ -76,9 +77,9 @@ int main(int argc, char *argv[]) {
         }
     }
     int tmp_arr[] = {sockfd};
-    ReceiveData(sockfd, tmp_arr, 1);
+    ReceiveData(recv_buffer, sockfd, tmp_arr, 1);
     printf("%s\n", recv_buffer);
-    Reset();
+    Reset(recv_buffer);
     }
 
 	close(sockfd);//关闭套接字

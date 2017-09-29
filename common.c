@@ -13,14 +13,14 @@ char* function_code[4] = { "1\n", "2\n", "3\n", "4\n" };
 void *ptr;
 
 // used to clear the receive buffer and reset ptr for a new cycle
-void Reset(){
+void Reset(char* recv_buffer){
     for(int i = 0; i < MAX_LENGTH; i++){
         recv_buffer[i] = 0;
     }
     ptr = recv_buffer;
 }
 
-void ReceiveData(int recv_fd, int* close_fd, int amount){
+void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount){
     int count = -1;
     int ret;
     // write the received data into recv_buffer
