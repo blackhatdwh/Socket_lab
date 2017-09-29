@@ -19,7 +19,6 @@
 #include <unistd.h>
 #define SERVER_PORT	4577 //侦听端口
 #define MAX_LENGTH 1024 // max length of a packet
-extern char recv_buffer[MAX_LENGTH];
 extern char* function_code[4];
 extern void* ptr;
 void Reset();

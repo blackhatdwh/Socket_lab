@@ -7,7 +7,6 @@
 
 #include "common.h"
 
-char recv_buffer[MAX_LENGTH];       // a buffer used to store the income data
 // used to indicate which function the client is requesting for
 // 0: error, 1: get time, 2: get name, 3: get list, 4: send msg
 char* function_code[4] = { "1\n", "2\n", "3\n", "4\n" };
