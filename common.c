@@ -17,33 +17,31 @@ void Reset(char* recv_buffer){
     for(int i = 0; i < MAX_LENGTH; i++){
         recv_buffer[i] = 0;
     }
+    recv_buffer[0] = '\r';
     ptr = recv_buffer;
 }
 
 void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount){
-    int count = -1;
     int ret;
-    // write the received data into recv_buffer
-	ptr = recv_buffer;
-    ret = recv(recv_fd, ptr, MAX_LENGTH, 0);
-    ptr = (char *)ptr + ret;
-    count += ret;
-    if(count == -1){
-        return;
-    }
     // a complete message always ends with a character '\n'
-	while(recv_buffer[count] != '\n') {
+	while(recv_buffer[strlen(recv_buffer) - 1] != '\n') {
 		// receive data
 		ret = recv(recv_fd, ptr, MAX_LENGTH, 0);
-        count += ret;
         // if some error happens, exit
-		if(ret <= 0) {
+		if(ret < 0) {
+            printf("%d\n", ret);
 			printf("recv() failed!\n");
             for(int i = 0; i < amount; i++){
                 close(close_fd[i]);
             }
 			exit(-1);
 		}
+        // if the peer disconnect
+        if(ret == 0){
+            Disconnect(recv_fd);
+            return;
+        }
 		ptr = (char *)ptr + ret;
 	}
 }
+
