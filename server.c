@@ -18,6 +18,8 @@ struct connection_log {
 };
 struct connection_log* llhead;
 
+// when user press Ctrl+C
+// cancel all sub thread, free the connection log linked lisr, then exit
 void signal_callback_handler(int signum){
     printf("killed by ctrl+C!\n");
     struct connection_log* llptr = llhead->next;
@@ -52,11 +54,7 @@ int InsertRecord(int comfd, char* ip_addr, int port, pthread_t thread_id){
 
 void BadRequest(int send_fd){
     char* send_buffer = "status_code: 400\n";
-    if(send(send_fd, send_buffer, strlen(send_buffer), 0) == -1) {
-        printf("send() failed!\n");
-        close(send_fd);
-        exit(-1);
-    }
+    SendData(send_fd, send_buffer);
 }
 
 void ShowTime(int send_fd){
@@ -69,11 +67,7 @@ void ShowTime(int send_fd){
     char time_text[100];
     sprintf (time_text, "Current local time and date: %s\n", asctime (timeinfo));
     strcat(send_buffer, time_text);
-    if(send(send_fd, send_buffer, strlen(send_buffer), 0) == -1) {
-        printf("send() failed!\n");
-        close(send_fd);
-        exit(-1);
-    }
+    SendData(send_fd, send_buffer);
 }
 
 void ShowName(int send_fd){
@@ -85,17 +79,13 @@ void ShowName(int send_fd){
     int length = strlen(send_buffer);
     send_buffer[length] = '\n';
     send_buffer[length+1] = 0;
-    if(send(send_fd, send_buffer, strlen(send_buffer), 0) == -1) {
-        printf("send() failed!\n");
-        close(send_fd);
-        exit(-1);
-    }
+    SendData(send_fd, send_buffer);
 }
 
-void ShowList(struct connection_log* head, int send_fd){
+void ShowList(int send_fd){
     char send_buffer[MAX_LENGTH];
     sprintf(send_buffer, "status_code: 200\rcontent: ");
-    struct connection_log* llptr = head->next;
+    struct connection_log* llptr = llhead->next;
     while(llptr != NULL){
         char list_element[80] = "Number: ";
         char num_text[5];
@@ -115,15 +105,59 @@ void ShowList(struct connection_log* head, int send_fd){
     int length = strlen(send_buffer);
     send_buffer[length] = '\n';
     send_buffer[length+1] = 0;
-    if(send(send_fd, send_buffer, strlen(send_buffer), 0) == -1) {
-        printf("send() failed!\n");
-        close(send_fd);
-        exit(-1);
-    }
+    SendData(send_fd, send_buffer);
 }
 
-int TransferMsg(struct connection_log* head, int send_fd){
+// after receive client's send msg request, return a '200' to inform it that the requset was accepted
+// so the client will send more data
+void TransferMsg_1(int send_fd){
+    char send_buffer[MAX_LENGTH];
+    sprintf(send_buffer, "status_code: 200\n");
+    SendData(send_fd, send_buffer);
+}
 
+// after receiving extended data from the client, analyse it to get the destination and msg content
+// and try to perform the transfering work
+void TransferMsg_2(char* recv_buffer){
+    int dest_num = 0;
+    int dest_comfd = -1;
+    char msg_content[MAX_LENGTH];
+    sscanf(recv_buffer, "number: %d\rmessage: %s\n", &dest_num, msg_content);
+    struct connection_log* llptr = llhead->next;
+    while(llptr != NULL){
+        if(llptr->num == dest_num){
+            dest_comfd = llptr->comfd;
+            break;
+        }
+        llptr = llptr->next;
+    }
+    // if the given number is not in the connecting list, response "400\n"
+    if(dest_comfd == -1){
+        char send_buffer[MAX_LENGTH] = "status_code: 400\n";
+        SendData(dest_comfd, send_buffer);
+        return;
+    }
+    char send_buffer[MAX_LENGTH] = "content: ";
+    strcat(send_buffer, msg_content);
+    SendData(dest_comfd, send_buffer);
+}
+
+// waiting for destination client to response
+// if the dest client accepted the msg, it will response "200\n", then the server forward it to the original client
+// if the dest client reject the msg, it will response "400\n", then the server will send "401\n" to the original client
+void TransferMsg_3(int comfd, char* recv_buffer){
+    int status_code = 0;
+    sscanf(recv_buffer, "status_code: %d\n", &status_code);
+    if(status_code == 200){
+        char send_buffer[MAX_LENGTH] = "status_code: 200\n";
+        SendData(comfd, send_buffer);
+        return;
+    }
+    if(status_code == 400){
+        char send_buffer[MAX_LENGTH] = "status_code: 401\n";
+        SendData(comfd, send_buffer);
+        return;
+    }
 }
 
 // when a client disconnect, delete it from the connecting list
@@ -185,10 +219,17 @@ void* SubProcess(void* raw_comfd){
                 break;
             // get list
             case 3:
-                ShowList(llhead, comfd);
+                ShowList(comfd);
                 break;
             // send msg
             case 4:
+                TransferMsg_1(comfd);
+                Reset(recv_buffer);
+                ReceiveData(recv_buffer, comfd, tmp_arr, 2);
+                TransferMsg_2(recv_buffer);
+                Reset(recv_buffer);
+                ReceiveData(recv_buffer, comfd, tmp_arr, 2);
+                TransferMsg_3(comfd, recv_buffer);
                 break;
         }
         Reset(recv_buffer);

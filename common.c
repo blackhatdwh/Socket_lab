@@ -45,3 +45,10 @@ void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount){
 	}
 }
 
+void SendData(int send_fd, char* send_buffer){
+    if(send(send_fd, send_buffer, strlen(send_buffer), 0) == -1) {
+        printf("send() failed!\n");
+        close(send_fd);
+        exit(-1);
+    }
+}

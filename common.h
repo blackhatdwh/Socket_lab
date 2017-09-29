@@ -19,12 +19,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>
-#define SERVER_PORT	4577 //侦听端口
+#define SERVER_PORT	4577    //侦听端口
 #define MAX_LENGTH 1024 // max length of a packet
 extern char* function_code[4];
 extern void* ptr;
 void Reset(char* recv_buffer);
 void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount);
 void Disconnect(int recv_fd);
+void SendData(int send_fd, char* send_buffer);
 
 #endif /* !COMMON_H */

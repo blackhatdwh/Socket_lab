@@ -1,36 +1,22 @@
 My Protocol
 
 (C)function_code: 1\n (get_time)
-    (S)status_code: 200\r (accept)
-    (S)time: content\n
-
-    (S)status_code: 400\n (bad_request)
-        (C)ALERT USER: bad request
+    (S)status_code: 200\rtime: content\n
 
 (C)function_code: 2\n (get_name)
-    (S)status_code: 200\r (accept)
-    (S)name: content\n
-
-    (S)status_code: 400\n (bad_request)
-        (C)ALERT USER: bad request
+    (S)status_code: 200\rname: content\n
 
 (C)function_code: 3\n (get_list)
-    (S)status_code: 200\r (accept)
-    (S)list: content\r
+    (S)status_code: 200\rlist: content\r
     ...
     (S)list: content\n
 
     (S)status_code: 400\n (bad_request)
         (C)ALERT USER: bad request
 
-(C)function_code: 4\n (send_msg)
-    (S)status_code: 200\n (accept)
-        (C)number: content\r
-        (C)message: content\n
-            (S)200\n (accept)
-
-            (S)400\n (bad_request)
-                 (C)ALERT_USER: bad request
-
-    (S)status_code: 400\n (bad request)
-        (C)ALERT_USER: bad request
+(C1)function_code: 4\n (send_msg)
+    (S)status_code: 200\n       --> C1
+        (C1)number: content\rmessage: content\n
+            (S)message: content\n       --> C2
+                (C2)200\n
+                    (S)status_code: 200\n       -->C1
