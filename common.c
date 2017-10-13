@@ -12,6 +12,24 @@
 char* function_code[4] = { "1\n", "2\n", "3\n", "4\n" };
 void *ptr;
 
+void RawPrint(char* text){
+    int length = strlen(text);
+    for(int i = 0; i < length; i++){
+        switch (text[i]){
+            case '\n':
+                printf("\\n");
+                break;
+            case '\r':
+                printf("\\r");
+                break;
+            default:
+                    printf("%c", text[i]);
+                    break;
+        }
+    }
+    printf("\n");
+}
+
 // used to clear the receive buffer and reset ptr for a new cycle
 void Reset(char* recv_buffer){
     for(int i = 0; i < MAX_LENGTH; i++){

@@ -27,5 +27,6 @@ void Reset(char* recv_buffer);
 void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount);
 void Disconnect(int recv_fd);
 void SendData(int send_fd, char* send_buffer);
+void RawPrint(char* text);
 
 #endif /* !COMMON_H */

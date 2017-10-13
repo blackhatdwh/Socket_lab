@@ -10,6 +10,10 @@ int sockfd;
 int connected = 0;
 pthread_t thread_id;
 
+int status_code = 0;
+int receiver = 0;
+char msg_content[MAX_LENGTH];
+
 
 
 void Disconnect(int recv_fd){
@@ -22,23 +26,41 @@ void Disconnect(int recv_fd){
 void* SubProcess(void* args){
     pthread_detach(pthread_self());
     char recv_buffer[MAX_LENGTH];
+    Reset(recv_buffer);
     while(1){
-        Reset(recv_buffer);
         int tmp_arr[] = {sockfd};
         ReceiveData(recv_buffer, sockfd, tmp_arr, 1);
-        printf("%s\n", recv_buffer);
+        // printf("%s\n", recv_buffer);
+        RawPrint(recv_buffer);
+
+        sscanf(recv_buffer, "status_code: %d", &status_code);
+        // send msg
+        if(status_code == 100){
+            char send_buffer[MAX_LENGTH] = "number: ";
+            char receiver_text[10];
+            sprintf(receiver_text, "%d", receiver);
+            strcat(send_buffer, receiver_text);
+            strcat(send_buffer, "\rmessage: ");
+            strcat(send_buffer, msg_content);
+            strcat(send_buffer, "\n");
+            SendData(sockfd, send_buffer);
+        }
+
         Reset(recv_buffer);
     }
 }
 
 void Connect(){
-    char server_ip[20];
-    int server_port;
+    char server_ip[20] = "127.0.0.1";
+    int server_port = 4577;
+    /*
     printf("Please specify server's IP and port.\n");
     printf("IP:");
     scanf("%s", server_ip);
     printf("\nport:");
     scanf("%d", &server_port);
+    */
+
     struct sockaddr_in serverAddr;
 
     // create a socket
@@ -104,12 +126,16 @@ int main(int argc, char *argv[]) {
 
         // send msg
         if(choice == 6){
+            printf("Please specify the receiver's number.\n");
+            scanf("%d", &receiver);
+            printf("Please specify the msg content.\n");
+            scanf("%s", msg_content);
             SendData(sockfd, function_code[3]);
         }
 
         // exit
         if(choice == 7){
-
+            exit(0);
         }
     }
 

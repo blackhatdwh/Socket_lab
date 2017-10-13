@@ -15,7 +15,7 @@ My Protocol
         (C)ALERT USER: bad request
 
 (C1)function_code: 4\n (send_msg)
-    (S)status_code: 200\n       --> C1
+    (S)status_code: 100\n       --> C1
         (C1)number: content\rmessage: content\n
             (S)message: content\n       --> C2
                 (C2)200\n

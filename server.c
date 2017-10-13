@@ -99,7 +99,6 @@ void ShowList(int send_fd){
         strcat(list_element, port_text);
         strcat(list_element, "\n");
         strcat(send_buffer, list_element);
-        printf("%d\n", llptr->comfd);
         llptr = llptr->next;
     }
     int length = strlen(send_buffer);
@@ -108,11 +107,11 @@ void ShowList(int send_fd){
     SendData(send_fd, send_buffer);
 }
 
-// after receive client's send msg request, return a '200' to inform it that the requset was accepted
+// after receive client's send msg request, return a '100' to inform it to continue
 // so the client will send more data
 void TransferMsg_1(int send_fd){
     char send_buffer[MAX_LENGTH];
-    sprintf(send_buffer, "status_code: 200\n");
+    sprintf(send_buffer, "status_code: 100\n");
     SendData(send_fd, send_buffer);
 }
 
@@ -139,6 +138,7 @@ void TransferMsg_2(char* recv_buffer){
     }
     char send_buffer[MAX_LENGTH] = "content: ";
     strcat(send_buffer, msg_content);
+    strcat(send_buffer, "\n");
     SendData(dest_comfd, send_buffer);
 }
 
