@@ -30,11 +30,18 @@ void* SubProcess(void* args){
     while(1){
         int tmp_arr[] = {sockfd};
         ReceiveData(recv_buffer, sockfd, tmp_arr, 1);
+        char content[MAX_LENGTH];
         // printf("%s\n", recv_buffer);
         RawPrint(recv_buffer);
 
         sscanf(recv_buffer, "status_code: %d", &status_code);
-        // send msg
+        // recv response from server
+        if(status_code == 200){
+            sscanf(recv_buffer, "status_code: 200\rcontent: %[^\n]s", content);
+            //printf("%s\n", content);
+            //RawPrint(content);
+        }
+        // in the process of sending msg, the server accepted the sending request and ask for details
         if(status_code == 100){
             char send_buffer[MAX_LENGTH] = "number: ";
             char receiver_text[10];
@@ -43,6 +50,16 @@ void* SubProcess(void* args){
             strcat(send_buffer, "\rmessage: ");
             strcat(send_buffer, msg_content);
             strcat(send_buffer, "\n");
+            SendData(sockfd, send_buffer);
+        }
+        // recv msg from peer
+        if(status_code == 300){
+            sscanf(recv_buffer, "status_code: 300\rmessage: %[^\n]s", content);
+            strcat(content, "\n");      // fix magical bug
+            //printf("%s\n", content);
+            //RawPrint(content);
+            char send_buffer[MAX_LENGTH] = "status_code: 200\n";
+            printf("send200\n");
             SendData(sockfd, send_buffer);
         }
 

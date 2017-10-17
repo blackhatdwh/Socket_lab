@@ -97,7 +97,7 @@ void ShowList(int send_fd){
         sprintf(port_text, "%d", llptr->port);
         strcat(list_element, "\tPort: ");
         strcat(list_element, port_text);
-        strcat(list_element, "\n");
+        strcat(list_element, "\r");
         strcat(send_buffer, list_element);
         llptr = llptr->next;
     }
@@ -117,7 +117,8 @@ void TransferMsg_1(int send_fd){
 
 // after receiving extended data from the client, analyse it to get the destination and msg content
 // and try to perform the transfering work
-void TransferMsg_2(char* recv_buffer){
+// return the third party comfd
+int TransferMsg_2(char* recv_buffer, int client_fd){
     int dest_num = 0;
     int dest_comfd = -1;
     char msg_content[MAX_LENGTH];
@@ -132,14 +133,16 @@ void TransferMsg_2(char* recv_buffer){
     }
     // if the given number is not in the connecting list, response "400\n"
     if(dest_comfd == -1){
-        char send_buffer[MAX_LENGTH] = "status_code: 400\n";
-        SendData(dest_comfd, send_buffer);
-        return;
+        //char send_buffer[MAX_LENGTH] = "status_code: 400\n";
+        //SendData(dest_comfd, send_buffer);
+        //SendData(client_fd, send_buffer);
+        return dest_comfd;
     }
-    char send_buffer[MAX_LENGTH] = "content: ";
+    char send_buffer[MAX_LENGTH] = "status_code: 300\rmessage: ";
     strcat(send_buffer, msg_content);
     strcat(send_buffer, "\n");
     SendData(dest_comfd, send_buffer);
+    return dest_comfd;
 }
 
 // waiting for destination client to response
@@ -226,10 +229,17 @@ void* SubProcess(void* raw_comfd){
                 TransferMsg_1(comfd);
                 Reset(recv_buffer);
                 ReceiveData(recv_buffer, comfd, tmp_arr, 2);
-                TransferMsg_2(recv_buffer);
-                Reset(recv_buffer);
-                ReceiveData(recv_buffer, comfd, tmp_arr, 2);
-                TransferMsg_3(comfd, recv_buffer);
+                int third_fd = TransferMsg_2(recv_buffer, comfd);
+                if(third_fd != -1){
+                    Reset(recv_buffer);
+                    printf("before\n");
+                    ReceiveData(recv_buffer, third_fd, tmp_arr, 2);
+                    printf("after\n");
+                    TransferMsg_3(comfd, recv_buffer);
+                }
+                else{
+                    BadRequest(comfd);
+                }
                 break;
         }
         Reset(recv_buffer);
