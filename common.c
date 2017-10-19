@@ -10,7 +10,6 @@
 // used to indicate which function the client is requesting for
 // 0: error, 1: get time, 2: get name, 3: get list, 4: send msg
 char* function_code[4] = { "1\n", "2\n", "3\n", "4\n" };
-void *ptr;
 
 void RawPrint(char* text){
     int length = strlen(text);
@@ -36,10 +35,10 @@ void Reset(char* recv_buffer){
         recv_buffer[i] = 0;
     }
     recv_buffer[0] = '\r';
-    ptr = recv_buffer;
 }
 
 void ReceiveData(char* recv_buffer, int recv_fd, int* close_fd, int amount){
+    char* ptr = recv_buffer;
     int ret;
     // a complete message always ends with a character '\n'
 	while(recv_buffer[strlen(recv_buffer) - 1] != '\n') {

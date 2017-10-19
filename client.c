@@ -59,7 +59,6 @@ void* SubProcess(void* args){
             //printf("%s\n", content);
             //RawPrint(content);
             char send_buffer[MAX_LENGTH] = "status_code: 200\n";
-            printf("send200\n");
             SendData(sockfd, send_buffer);
         }
 

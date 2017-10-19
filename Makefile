@@ -13,13 +13,13 @@ server: server.o common.o
 	gcc server.o common.o -o server -g -lpthread
 
 client.o: client.c common.c common.h
-	gcc -c client.c common.c
+	gcc -c client.c common.c -g
 
 server.o: server.c common.c common.h
-	gcc -c server.c common.c
+	gcc -c server.c common.c -g
 
 common.o: common.c common.h
-	gcc -c common.c
+	gcc -c common.c -g
 
 clean:
 	rm client.o server.o client server commom.o

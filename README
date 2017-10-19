@@ -20,3 +20,23 @@ My Protocol
             (S)status_code: 300\rmessage: content\n       --> C2
                 (C2)200\n
                     (S)status_code: 200\n       -->C1
+
+
+2 pipes
+    0: subthread ---> forwarder
+    1: forwarder ---> subthread
+
+pipe_mutex
+    lock to write in to pipe0
+
+global variable
+    indicates which is the destination subthread
+
+condition variable
+    forwarder wait
+    destination subthread signal to wake it up
+    forwarder write to pipe1
+
+
+internal protocol:
+dest: thread_id\rfrom: thread_id\rcontent: xxx\n
